@@ -50,7 +50,7 @@ export function App(){
     return()=>{unState();unSpeech();stream.current?.getTracks().forEach(t=>t.stop());};
   },[]);
   useEffect(()=>{
-    scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'});
+    if(state?.messages.length)scroll.current?.scrollTo({top:scroll.current.scrollHeight,behavior:'smooth'});
     if(!state||!initialized.current)return;
     const message=state.messages.filter(m=>m.role==='assistant').at(-1);
     if(!message||lastSpoken.current===message.id)return;

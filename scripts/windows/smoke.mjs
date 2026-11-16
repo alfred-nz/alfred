@@ -71,11 +71,11 @@ try{
   await page.getByRole('button',{name:'Cancel',exact:true}).click();await waitFor(()=>page.evaluate(async()=>!(await window.alfred.state()).pending));
   assert(!(await page.evaluate(()=>window.alfred.state())).messages.some(m=>m.tool==='browser__browser_navigate'));
   await page.evaluate(()=>window.alfred.send('Open the browser page.'));await page.getByRole('button',{name:'Confirm action',exact:true}).click();
-  await waitFor(()=>page.evaluate(async()=>{const s=await window.alfred.state();return !s.busy&&s.messages.some(m=>m.tool==='browser__browser_navigate'&&!m.error&&m.text.includes('Browser tool completed'));}),90000);
+  await waitFor(()=>page.evaluate(async()=>{const s=await window.alfred.state();const receipt=s.messages.find(m=>m.tool==='browser__browser_navigate');if(receipt?.error)throw new Error('Browser navigation failed: '+receipt.text);return !s.busy&&receipt&&!receipt.error&&receipt.text.includes('Browser tool completed');}),90000);
   passed.push('real Windows browser tools with rejected and approved navigation');
   await page.getByLabel('Connections',{exact:true}).click();await page.screenshot({path:path.join(evidence,'03-connections.png')});
   const metrics=await app.evaluate(({app})=>app.getAppMetrics().map(p=>({type:p.type,memory:p.memory}))); 
   fs.writeFileSync(path.join(evidence,'summary.json'),JSON.stringify({passed,recognizers:health.speech_recognizers,liveMicrophoneTested:false,realLLMTested:false,metrics},null,2));
   console.log(JSON.stringify({passed,recognizers:health.speech_recognizers},null,2));
-}catch(error){fs.writeFileSync(path.join(evidence,'failure.json'),JSON.stringify({passed,error:String(error)},null,2));throw error;}
+}catch(error){if(app){try{const page=await app.firstWindow();fs.writeFileSync(path.join(evidence,'failure-state.json'),JSON.stringify(await page.evaluate(()=>window.alfred.state()),null,2));await page.screenshot({path:path.join(evidence,'failure.png')});}catch{}}fs.writeFileSync(path.join(evidence,'failure.json'),JSON.stringify({passed,error:String(error)},null,2));throw error;}
 finally{await app?.close();fixture?.kill();server.closeAllConnections();server.close();}

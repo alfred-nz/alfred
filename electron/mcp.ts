@@ -65,7 +65,7 @@ export class MCP {
     // DCR binds its exact loopback port; register again for this interactive session.
     const provider:OAuthClientProvider={
       redirectUrl:redirect,
-      clientMetadata:{client_name:'Alfred for Mac',redirect_uris:[redirect],grant_types:['authorization_code','refresh_token'],response_types:['code'],token_endpoint_auth_method:'none',scope:'mcp:advisory mcp:code mcp:chat mcp:tasks project-tasks:write'},
+      clientMetadata:{client_name:'OpenExec Alfred',redirect_uris:[redirect],grant_types:['authorization_code','refresh_token'],response_types:['code'],token_endpoint_auth_method:'none',scope:'mcp:advisory mcp:code mcp:chat mcp:tasks project-tasks:write'},
       state:()=>state,
       clientInformation:()=>saved().client as OAuthClientInformationMixed|undefined,
       saveClientInformation:(client)=>save({client}),

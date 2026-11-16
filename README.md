@@ -1,6 +1,6 @@
 # Alfred for Mac and Windows
 
-A voice-first personal companion for OpenExec on macOS and Windows 10/11 x64. Keep the Alfred character; replace the hackathon's social and payment demos with conversation, local Mac tools, your existing Agent Console, and a durable ideas inbox.
+A voice-first personal companion for OpenExec on macOS and Windows 10/11 x64. Keep the Alfred character; replace the hackathon's social and payment demos with conversation, local desktop tools, your existing Agent Console, and a durable ideas inbox.
 
 Private adaptation of the team's Alfred. See [NOTICE.md](NOTICE.md) before distributing any source or artwork.
 
@@ -9,7 +9,7 @@ Private adaptation of the team's Alfred. See [NOTICE.md](NOTICE.md) before distr
 Open **Alfred.app** on Mac or extract the Windows ZIP and open **Alfred.exe**. Click Alfred or **Talk to Alfred**; the global shortcut is **Option–Space** on Mac and **Ctrl–Shift–Space** on Windows. System speech uses the platform’s offline recognizer and voice; Windows requires an installed speech language. **Conversation mode** listens again after each spoken reply. You can always type instead.
 
 - “Remember this: collect receipts every Friday.” saves a local idea immediately, even without a model.
-- “Which apps are running?” asks the local model to inspect your Mac through Peekaboo.
+- “Which apps are running?” asks the local model to inspect your computer through its native desktop tools.
 - Connect Agent Console, then ask about the projects available to that connection.
 - Connect browser tools, then ask to visit a page. Actions present the exact arguments and require “yes” or the Confirm button.
 

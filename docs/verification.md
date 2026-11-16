@@ -34,3 +34,5 @@ No production Console tasks, private messages, financial actions, merges or depl
 ## Installed handoff
 
 Installed at `~/Applications/Alfred.app`; source checkout at `~/projects/alfred-openexec`. The final attempted interactive sign-in/voice inspection was blocked because the Mac was locked and the computer-use tool could not unlock it. No account or macOS permission was bypassed. The app is built and installed, but Console sign-in, microphone transcription, and native clicks remain pending owner interaction.
+
+Final package correction: excluded development `.bin` symlinks referring to the intentionally omitted Electron package. The packaging script now performs strict deep signature verification and succeeds. Initial GitHub CI passed all type, unit and production-build checks.

@@ -12,3 +12,30 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node node_modules/electron/install.js
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run package:windows
+      - run: npm run test:windows
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: windows-test-evidence
+          path: test-results/windows/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Alfred-windows-x64
+          path: |
+            release/Alfred-*-windows-x64.zip
+            release/Alfred-*-windows-x64.zip.sha256
+          retention-days: 30

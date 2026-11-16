@@ -10,8 +10,8 @@ export class Voice {
   listen(){
     if(this.recognition)return;
     this.stopSpeaking();this.transcript='';this.finished=false;
-    if(!fs.existsSync(this.helper))throw new Error('Native speech helper is missing. Run the Mac packaging step.');
-    const child=spawn(this.helper,[],{stdio:['ignore','pipe','pipe']});this.recognition=child;
+    if(!fs.existsSync(this.helper))throw new Error('Native speech helper is missing. Reinstall the complete Alfred package.');
+    const child=spawn(this.helper,process.platform==='win32'?['listen']:[],{windowsHide:true,stdio:['ignore','pipe','pipe']});this.recognition=child;
     let buffer='';
     child.stdout?.on('data',chunk=>{
       buffer+=chunk.toString();let index;
@@ -42,12 +42,16 @@ export class Voice {
       return Buffer.from(await r.arrayBuffer()).toString('base64');
     }
     await new Promise<void>((resolve,reject)=>{
-      this.speech=spawn('/usr/bin/say',['-r','175'],{stdio:['pipe','ignore','ignore']});
-      this.speech.stdin?.end(text.slice(0,4000));this.speech.once('error',reject);this.speech.once('exit',()=>resolve());
+      const windows=process.platform==='win32';
+      if(windows&&!fs.existsSync(this.helper)){reject(new Error('Windows speech helper is missing. Re-extract the complete ZIP.'));return;}
+      this.speech=spawn(windows?this.helper:'/usr/bin/say',windows?['request']:['-r','175'],{windowsHide:true,stdio:['pipe','ignore','ignore']});
+      this.speech.stdin?.on('error',()=>{});
+      this.speech.stdin?.end(windows?JSON.stringify({operation:'speak',text:text.slice(0,4000)}):text.slice(0,4000));
+      this.speech.once('error',reject);this.speech.once('exit',(code,signal)=>code===0||signal?resolve():reject(new Error('System speech is unavailable. Check your audio device or select ElevenLabs.')));
     });
   }
   async transcribe(audio:ArrayBuffer,mime:string){
-    const key=this.vault.get('elevenlabs');if(!key)throw new Error('Add your existing ElevenLabs key or select the Mac voice.');
+    const key=this.vault.get('elevenlabs');if(!key)throw new Error('Add your existing ElevenLabs key or select the system voice.');
     if(audio.byteLength>20*1024*1024)throw new Error('Recording exceeds 20 MiB.');
     const form=new FormData();form.append('file',new Blob([audio],{type:mime}),'speech.webm');form.append('model_id','scribe_v1');
     const r=await fetch('https://api.elevenlabs.io/v1/speech-to-text',{method:'POST',headers:{'xi-api-key':key},body:form,signal:AbortSignal.timeout(60000)});

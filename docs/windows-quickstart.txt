@@ -1,0 +1,48 @@
+ALFRED FOR WINDOWS — PRIVATE TEAM PREVIEW
+
+1. Extract the entire ZIP to a folder you own. Do not run from inside the ZIP.
+2. Open Alfred.exe. No administrator rights are required.
+3. Click Alfred or Talk to Alfred. Ctrl+Shift+Space opens voice from other apps.
+4. For immediate use without any model, type:
+   Remember this: collect receipts every Friday.
+   Open Ideas inbox, close and reopen Alfred, and the thought remains there.
+5. Install Ollama from its official site, then run: ollama pull qwen3:8b
+   Ollama must be running for model-backed requests. Choose a tool-capable model
+   in Connections & voice if your machine uses a different model.
+6. Agent Console: enter your own MCP address, click Connect Agent Console,
+   and sign in with your own account. Your grant determines available projects.
+   No demo-owner login or token is included.
+7. Browser: click Connect browser tools. Chrome is used when installed;
+   otherwise Edge is used. The browser profile is isolated from your daily one.
+8. Voice: Windows speech uses installed offline speech languages and your
+   default microphone/output. If no offline recognizer is installed, add a
+   speech language through Windows Settings or choose your ElevenLabs account.
+   Enter your own ElevenLabs key; audio then uses that account's allowance.
+
+TRY NATIVE COMPUTER USE
+Keep an ordinary app open and ask Alfred to inspect its window. Windows tools
+can discover apps/windows, inspect accessible controls, invoke buttons, select
+items and replace text in editable fields. Each action requires confirmation.
+Snapshots expire after two minutes and are consumed by an action. If the app
+changes, ask Alfred to observe again. Password fields are excluded.
+
+LIMITS
+Windows 10/11 x64. No control of UAC, elevated apps, other sessions or locked
+desktops. Custom-drawn controls may not expose useful accessibility data.
+No global pixel clicking, arbitrary shell commands, or silent background work.
+Native live speech depends on language packs and microphone access. This is
+turn-based speech, not a fully streaming/interruption-aware voice assistant.
+
+The ZIP is an unsigned private preview, not an Authenticode-signed installer.
+Windows may warn about its publisher. Do not disable Windows protections.
+Check that the file came from the expected private OpenExec repository.
+
+DATA
+Your ideas, conversation, receipts and settings live in:
+  %APPDATA%\OpenExec Alfred\
+Credentials are encrypted using Windows DPAPI for your Windows account.
+The portable program folder contains no personal Mac state or credentials.
+Closing the window hides Alfred in the system tray. Quit from the tray to exit.
+
+This adaptation retains privately shared team artwork. See NOTICE.md; do not
+redistribute publicly without permission from the original authors.

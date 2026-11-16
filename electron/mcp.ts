@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { Tool } from '../shared/contract';
 import { remoteReadOnly } from './policy';
+import { browserChannel } from './browser-channel';
 
 export interface Vault { get(key: string): any; set(key: string,value: any): void }
 export class MCP {
@@ -89,7 +90,7 @@ export class MCP {
   async browser(appRoot:string,dataDirectory:string) {
     await this.disconnect('browser');
     const client=new Client({name:'openexec-alfred',version:'0.1.0'});
-    const transport=new StdioClientTransport({command:process.execPath,cwd:dataDirectory,args:[path.join(appRoot,'node_modules/@playwright/mcp/cli.js'),'--browser','chrome','--isolated'],env:{...Object.fromEntries(Object.entries(process.env).filter((p):p is [string,string]=>!!p[1]&&!/KEY|TOKEN|SECRET|PASSWORD/.test(p[0]))),ELECTRON_RUN_AS_NODE:'1'},stderr:'pipe'});
+    const transport=new StdioClientTransport({command:process.execPath,cwd:dataDirectory,args:[path.join(appRoot,'node_modules/@playwright/mcp/cli.js'),'--browser',browserChannel(),'--isolated'],env:{...Object.fromEntries(Object.entries(process.env).filter((p):p is [string,string]=>!!p[1]&&!/KEY|TOKEN|SECRET|PASSWORD/.test(p[0]))),ELECTRON_RUN_AS_NODE:'1'},stderr:'pipe'});
     await client.connect(transport);await this.catalog('browser',client);
   }
   async call(name:string,args:Record<string,unknown>,signal?:AbortSignal) {

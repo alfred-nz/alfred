@@ -1,8 +1,8 @@
 {
   "name": "openexec-alfred",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
-  "description": "A voice-first Mac companion for OpenExec",
+  "description": "A voice-first desktop companion for OpenExec",
   "main": "dist-electron/electron/main.js",
   "scripts": {
     "build": "tsc -p tsconfig.electron.json && vite build",
@@ -10,7 +10,9 @@
     "test": "tsx --test tests/*.test.ts",
     "start": "electron .",
     "package:mac": "node scripts/package-mac.mjs",
-    "test:desktop": "node scripts/desktop-smoke.mjs"
+    "test:desktop": "node scripts/desktop-smoke.mjs",
+    "package:windows": "node scripts/package-windows.mjs",
+    "test:windows": "node scripts/windows/smoke.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",

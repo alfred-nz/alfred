@@ -6,7 +6,7 @@ import { Store, validateEndpoint } from './store';
 import { MCP, Vault } from './mcp';
 import { Engine } from './engine';
 import { Voice } from './voice';
-import { macPermissions } from './mac';
+import { desktopFor } from './desktop';
 import { Settings, Status } from '../shared/contract';
 
 app.setName('Alfred');
@@ -15,24 +15,27 @@ if(process.env.ALFRED_DATA_DIR)app.setPath('userData',process.env.ALFRED_DATA_DI
 let window:BrowserWindow;let tray:Tray;let store:Store;let engine:Engine;let mcp:MCP;let voice:Voice;
 let status={model:'Not checked',console:'Not connected',mac:'Not checked',browser:'Not connected'};
 const root=path.resolve(__dirname,'../..');
+const desktop=desktopFor();
+const shortcut=process.platform==='darwin'?'Alt+Space':'Control+Shift+Space';
+const shortcutLabel=process.platform==='darwin'?'⌥ Space':'Ctrl+Shift+Space';
 class EncryptedVault implements Vault {
   private file=path.join(app.getPath('userData'),'credentials.bin');
   get(key:string){
     if(!fs.existsSync(this.file))return undefined;
-    if(!safeStorage.isEncryptionAvailable())throw new Error('Unlock your Mac Keychain to use saved connections.');
+    if(!safeStorage.isEncryptionAvailable())throw new Error('Unlock your operating-system credential store to use saved connections.');
     return JSON.parse(safeStorage.decryptString(fs.readFileSync(this.file)))[key];
   }
   set(key:string,value:any){
-    if(!safeStorage.isEncryptionAvailable())throw new Error('Mac Keychain encryption is unavailable; credentials were not saved.');
+    if(!safeStorage.isEncryptionAvailable())throw new Error('Operating-system credential encryption is unavailable; credentials were not saved.');
     const all=fs.existsSync(this.file)?JSON.parse(safeStorage.decryptString(fs.readFileSync(this.file))):{};
     all[key]=value;
     fs.writeFileSync(this.file+'.tmp',safeStorage.encryptString(JSON.stringify(all)),{mode:0o600});fs.renameSync(this.file+'.tmp',this.file);
   }
 }
-function state():Status{return {...status,console:mcp.clients.has('console')?'Connected':status.console,browser:mcp.clients.has('browser')?'Connected':status.browser,voice:store.data.settings.voice==='system'?'On-device Mac speech':'ElevenLabs',busy:engine.busy,pending:engine.approval.pending,toolCount:engine.tools().length,settings:store.data.settings,messages:store.data.messages.slice(-200),ideas:store.data.ideas,tools:engine.tools()};}
+function state():Status{return {...status,platform:process.platform,shortcut:shortcutLabel,console:mcp.clients.has('console')?'Connected':status.console,browser:mcp.clients.has('browser')?'Connected':status.browser,voice:store.data.settings.voice==='system'?(process.platform==='win32'?'Offline Windows speech':'On-device Mac speech'):'ElevenLabs',busy:engine.busy,pending:engine.approval.pending,toolCount:engine.tools().length,settings:store.data.settings,messages:store.data.messages.slice(-200),ideas:store.data.ideas,tools:engine.tools()};}
 function changed(){if(window&&!window.isDestroyed())window.webContents.send('alfred:state',state());}
 async function check(){
-  const [mac,model]=await Promise.all([macPermissions(),fetch(store.data.settings.ollamaUrl+'/api/tags',{signal:AbortSignal.timeout(4000)}).then(r=>r.json()).then((d:any)=>d.models?.some((m:any)=>m.name===store.data.settings.model)?'Ready':`Model ${store.data.settings.model} not installed`).catch(()=>'Ollama is not running')]);
+  const [mac,model]=await Promise.all([desktop.status(),fetch(store.data.settings.ollamaUrl+'/api/tags',{signal:AbortSignal.timeout(4000)}).then(r=>r.json()).then((d:any)=>d.models?.some((m:any)=>m.name===store.data.settings.model)?'Ready':`Model ${store.data.settings.model} not installed`).catch(()=>'Ollama is not running')]);
   status.mac=mac;status.model=model;changed();
 }
 function handle(name:string,fn:(...args:any[])=>any){ipcMain.handle('alfred:'+name,async(event,...args)=>{
@@ -42,9 +45,9 @@ function handle(name:string,fn:(...args:any[])=>any){ipcMain.handle('alfred:'+na
 async function main(){
   store=new Store(app.getPath('userData'));const vault=new EncryptedVault();
   mcp=new MCP(vault,async url=>{const u=new URL(url);if(u.protocol!=='https:')throw new Error('Sign-in requires HTTPS.');await shell.openExternal(url);},changed);
-  engine=new Engine(store,mcp,changed);
-  voice=new Voice(path.join(process.resourcesPath,'Alfred Speech.app/Contents/MacOS/AlfredSpeech'),vault,()=>store.data.settings,e=>window?.webContents.send('alfred:speech',e));
-  window=new BrowserWindow({width:1100,height:800,minWidth:780,minHeight:620,title:'Alfred',backgroundColor:'#f8f6f1',titleBarStyle:'hiddenInset',trafficLightPosition:{x:20,y:22},webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
+  engine=new Engine(store,mcp,changed,desktop);
+  voice=new Voice(path.join(process.resourcesPath,process.platform==='win32'?'AlfredNative.exe':'Alfred Speech.app/Contents/MacOS/AlfredSpeech'),vault,()=>store.data.settings,e=>window?.webContents.send('alfred:speech',e));
+  window=new BrowserWindow({width:1100,height:800,minWidth:780,minHeight:620,title:'Alfred',backgroundColor:'#f8f6f1',...(process.platform==='darwin'?{titleBarStyle:'hiddenInset' as const,trafficLightPosition:{x:20,y:22}}:{}),webPreferences:{preload:path.join(__dirname,'preload.js'),contextIsolation:true,nodeIntegration:false,sandbox:true}});
   window.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   window.webContents.on('will-navigate',(event)=>event.preventDefault());
   session.defaultSession.setPermissionRequestHandler((contents,permission,callback)=>callback(contents===window.webContents&&permission==='media'));
@@ -70,9 +73,11 @@ async function main(){
   handle('addFolder',async()=>{const result=await dialog.showOpenDialog(window,{properties:['openDirectory'],title:'Choose a folder Alfred may read'});if(!result.canceled){store.data.settings.roots=[...new Set([...store.data.settings.roots,...result.filePaths.map(p=>fs.realpathSync(p))])];store.save();changed();}});
   handle('listen',()=>voice.listen());handle('stopListening',()=>voice.stopListening());handle('transcribe',(audio,mime)=>voice.transcribe(audio,mime));handle('speak',text=>voice.speak(text));handle('silence',()=>voice.stopSpeaking());handle('hide',()=>window.hide());
   await window.loadFile(path.join(root,'dist/index.html'));
-  const icon=nativeImage.createFromDataURL('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=');
-  tray=new Tray(icon);tray.setTitle('🎩');tray.setToolTip('Alfred · ⌥ Space to talk');tray.setContextMenu(Menu.buildFromTemplate([{label:'Talk to Alfred',click:()=>{window.show();window.webContents.send('alfred:speech',{toggle:true});}},{label:'Show Alfred',click:()=>window.show()},{label:'Stop',click:()=>{engine.stop();voice.close();}},{type:'separator'},{label:'Quit Alfred',click:()=>app.quit()}]));
-  globalShortcut.register('Alt+Space',()=>{window.show();window.webContents.send('alfred:speech',{toggle:true});});
+  const pixels=Buffer.alloc(24*24*4);
+  for(let y=0;y<24;y++)for(let x=0;x<24;x++){const i=(y*24+x)*4;const hat=(x>=7&&x<=16&&y>=5&&y<=15)||(x>=3&&x<=20&&y>=16&&y<=18);pixels[i]=hat?70:0;pixels[i+1]=hat?95:0;pixels[i+2]=hat?65:0;pixels[i+3]=hat?255:0;}
+  const icon=nativeImage.createFromBitmap(pixels,{width:24,height:24});
+  tray=new Tray(icon);if(process.platform==='darwin')tray.setTitle('🎩');tray.setToolTip('Alfred · '+shortcutLabel+' to talk');tray.setContextMenu(Menu.buildFromTemplate([{label:'Talk to Alfred',click:()=>{window.show();window.webContents.send('alfred:speech',{toggle:true});}},{label:'Show Alfred',click:()=>window.show()},{label:'Stop',click:()=>{engine.stop();voice.close();}},{type:'separator'},{label:'Quit Alfred',click:()=>app.quit()}]));
+  globalShortcut.register(shortcut,()=>{window.show();window.webContents.send('alfred:speech',{toggle:true});});
   window.on('close',e=>{if(!(app as any).isQuitting){e.preventDefault();window.hide();}});
   app.on('activate',()=>window.show());
   await check();

@@ -7,3 +7,8 @@ released under the MIT License; see [LICENSE](LICENSE).
 
 This desktop version adapts that Alfred for OpenExec. No browser profile, credentials, invoices, application state or
 private conversation data are included.
+
+## Credits
+
+- [Perttu Isotalo](https://linkedin.com/in/isotalo)
+- [Ravi A Samy](https://www.linkedin.com/in/rantonysamy/)

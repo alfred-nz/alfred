@@ -117,6 +117,13 @@ export function Site() {
       </ul>
     </section>
 
+    <section className="story" id="story">
+      <span className="eyebrow">THE STORY</span>
+      <h2>Alfred started at Junction 2026.</h2>
+      <p className="lede">The first version was built at Junction 2026 by Team Odin, as the talking butler of the team’s hackathon entry. This desktop app grew from him.</p>
+      <p className="credits">Made by <a href="https://linkedin.com/in/isotalo" target="_blank" rel="noopener">Perttu Isotalo</a> and <a href="https://www.linkedin.com/in/rantonysamy/" target="_blank" rel="noopener">Ravi A Samy</a>.</p>
+    </section>
+
     <section className="download" id="download">
       <Butler state="bowing"/>
       <div>

@@ -85,7 +85,11 @@ export class Engine {
       :m.tool_calls?{role:'assistant',content:m.content||null,...(m.reasoning_content?{reasoning_content:m.reasoning_content}:{}),tool_calls:m.tool_calls.map((c:any)=>({id:c.id,type:'function',function:{name:c.function.name,arguments:JSON.stringify(c.function.arguments)}}))}
       :{role:m.role,content:m.content})];
     const response=await fetch(settings.openaiUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(key?{Authorization:'Bearer '+key}:{})},body:JSON.stringify({model:settings.openaiModel,messages,tools:functions,temperature:0.15}),signal:timeout});
-    if(!response.ok)throw new Error(`The model endpoint returned HTTP ${response.status}. Check the model and key in Settings.`);
+    if(!response.ok){
+      // OpenAI-format errors carry a readable reason, for example Verda's "not subscribed to model".
+      const detail=await response.json().then((d:any)=>d?.error?.message,()=>undefined);
+      throw new Error(`The model endpoint returned HTTP ${response.status}${typeof detail==='string'&&detail.trim()?` (“${detail.trim().slice(0,300)}”)`:''}. Check the model and key in Settings.`);
+    }
     const choice=(await response.json() as any).choices?.[0];const message=choice?.message;
     if(!message)return undefined;
     // Reasoning models (Kimi and DeepSeek on Verda) return thinking in reasoning_content; it is sent back with tool calls above.

@@ -3,9 +3,9 @@ import { Check, Command, Download, Globe, HardDrive, Lightbulb, Lock, Monitor, R
 import { AlfredCharacter } from '../src/components/AlfredCharacter';
 import type { ButlerState } from '../shared/types';
 
-// Fill in when builds are published (the source repository is private today).
-const DOWNLOAD_MAC = '#download';
-const DOWNLOAD_WINDOWS = '#download';
+// Built and published by .github/workflows/release.yml on a v* tag.
+const DOWNLOAD_MAC = 'https://github.com/alfred-nz/alfred/releases/latest/download/Alfred-mac-arm64.zip';
+const DOWNLOAD_WINDOWS = 'https://github.com/alfred-nz/alfred/releases/latest/download/Alfred-windows-x64.zip';
 
 const noop = () => {};
 function Butler({ state, onClick }: { state: ButlerState; onClick?: () => void }) {
@@ -132,7 +132,7 @@ export function Site() {
           <a className="pill dark" href={DOWNLOAD_MAC}><Download size={18}/>Alfred for Mac</a>
           <a className="pill" href={DOWNLOAD_WINDOWS}><Download size={18}/>Alfred for Windows</a>
         </div>
-        <p className="fine">Mac: macOS with Ollama. Shortcut ⌥ Space. Windows 10/11 x64: portable ZIP, an installed speech language, Ollama. Shortcut Ctrl Shift Space.</p>
+        <p className="fine">Mac: Apple Silicon, with Ollama. Shortcut ⌥ Space. Windows 10/11 x64: portable ZIP, an installed speech language, Ollama. Shortcut Ctrl Shift Space.</p>
       </div>
     </section>
 

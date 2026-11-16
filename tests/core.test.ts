@@ -25,7 +25,7 @@ test('remote annotations cannot authorize actions or browser execution',()=>{
   assert.equal(remoteReadOnly('console','list_projects'),true);assert.equal(remoteReadOnly('console','run_task'),false);assert.equal(remoteReadOnly('console','capture'),false);assert.equal(remoteReadOnly('browser','browser_evaluate'),false);assert.equal(remoteReadOnly('console','read_and_delete_everything'),false);
 });
 test('file roots reject traversal, symlink escape, and hidden credentials',()=>{
-  const dir=fs.mkdtempSync(path.join(os.tmpdir(),'alfred-test-'));const root=path.join(dir,'root');fs.mkdirSync(root);fs.writeFileSync(path.join(root,'note.txt'),'hello');fs.writeFileSync(path.join(dir,'outside.txt'),'private');fs.symlinkSync(path.join(dir,'outside.txt'),path.join(root,'link.txt'));fs.mkdirSync(path.join(root,'.ssh'));fs.writeFileSync(path.join(root,'.ssh','id_rsa'),'secret');
+  const dir=fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'alfred-test-')));const root=path.join(dir,'root');fs.mkdirSync(root);fs.writeFileSync(path.join(root,'note.txt'),'hello');fs.writeFileSync(path.join(dir,'outside.txt'),'private');fs.symlinkSync(path.join(dir,'outside.txt'),path.join(root,'link.txt'));fs.mkdirSync(path.join(root,'.ssh'));fs.writeFileSync(path.join(root,'.ssh','id_rsa'),'secret');
   assert.equal(allowedFile([root],path.join(root,'note.txt')),path.join(root,'note.txt'));assert.throws(()=>allowedFile([root],path.join(root,'../outside.txt')));assert.throws(()=>allowedFile([root],path.join(root,'link.txt')));assert.throws(()=>allowedFile([root],path.join(root,'.ssh','id_rsa')));
 });
 test('local models cannot silently send private context to an external endpoint',()=>{

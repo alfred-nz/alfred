@@ -2,7 +2,9 @@
 
 A voice-first personal companion for OpenExec on macOS and Windows 10/11 x64. Keep the Alfred character; replace the hackathon's social and payment demos with conversation, local desktop tools, your existing Agent Console, and a durable ideas inbox.
 
-Private adaptation of the team's Alfred. See [NOTICE.md](NOTICE.md) before distributing any source or artwork.
+The first version was built by Team Odin at Junction 2026; MIT licensed. See [NOTICE.md](NOTICE.md).
+
+Made by [Perttu Isotalo](https://linkedin.com/in/isotalo) and [Ravi A Samy](https://www.linkedin.com/in/rantonysamy/).
 
 ## Use
 
@@ -15,7 +17,7 @@ Open **Alfred.app** on Mac or extract the Windows ZIP and open **Alfred.exe**. C
 
 The menu-bar/system-tray hat shows/hides Alfred and provides Stop and Quit. Closing the window hides it; quitting stops the app and its MCP children. Stop cannot undo an already completed external action.
 
-## Connections
+## Settings
 
 **Agent Console:** defaults to `https://connect.perttu.ai/mcp`. Sign in through the Console's OAuth/PKCE flow and choose projects. Alfred dynamically registers as a public client and uses loopback callback `http://127.0.0.1:17843/callback`. Your grant determines the catalog; read/advisory access is not execution authority. No credential from another client is copied. Tokens are encrypted with Electron safeStorage backed by Mac Keychain or Windows DPAPI.
 
@@ -25,11 +27,15 @@ The menu-bar/system-tray hat shows/hides Alfred and provides Stop and Quit. Clos
 
 **Browser:** bundled Playwright MCP starts on demand and uses an isolated Chrome profile (or Edge on Windows when Chrome is not installed). Sign in separately when needed; your regular Chrome profile is not copied. Browser tools are conservatively confirmation-gated, including navigation. There is no browser process when no browser task has opened one.
 
-**Local model:** install Ollama, run `ollama serve`, then `ollama pull qwen3:8b`. The default model is Qwen3 8B with thinking disabled and a bounded eight-step loop. Configure another tool-capable model in Connections. Only loopback inference endpoints are allowed in this version. The model may remain resident for five minutes after a request. Ollama is a separate process; quitting Alfred does not stop a shared Ollama server.
+**Local model:** install Ollama, run `ollama serve`, then `ollama pull qwen3:8b`. The default model is Qwen3 8B with thinking disabled and a bounded eight-step loop. Configure another tool-capable model in Settings. The Ollama address must be a loopback address. The model may remain resident for five minutes after a request. Ollama is a separate process; quitting Alfred does not stop a shared Ollama server.
 
-**Speech:** on Windows, the bundled helper uses System.Speech with an installed offline recognizer and system voice. Missing language/audio devices produce an actionable error; ElevenLabs remains optional. On Mac, the native Swift helper requires Microphone and Speech Recognition consent. It refuses to fall back to remote Apple recognition if on-device recognition is unavailable. English (UK) is the initial recognition locale. Optional ElevenLabs speech input/output uses your explicitly configured existing key and account allowance; recording is manually ended in this version. No paid model API is configured.
+**OpenAI-compatible endpoint (optional):** in Settings → Thinking, choose *OpenAI-compatible endpoint* and enter the base URL (for example `https://api.openai.com/v1`), a model and an API key. Alfred calls `/chat/completions` with tool calling, so the model must support tools. HTTPS is required except on localhost (LM Studio, vLLM, llama.cpp). The key is encrypted like other credentials. With an endpoint selected, your messages and whatever Alfred reads from your screen and files are sent to that provider; approvals still happen in Alfred.
 
-**Files:** choose allowed folders in Connections. Tools list directories and read bounded text documents. Hidden and credential paths and symlink escapes are rejected. PDFs, receipt OCR, email and WhatsApp connectors are not implemented in this first version; they require a suitable connected tool or a tested browser/native-app workflow.
+**ElevenLabs agent (optional):** in Settings → Voice, choose *My ElevenLabs agent* and enter your ElevenLabs key and agent ID. The agent holds the live conversation and hands work to Alfred through one client tool you add to the agent: `alfred_task`, with a single string parameter `request` and "wait for response" turned on. The key stays in the main process; the window only receives a signed session URL. Actions are confirmed only with the on-screen button in this mode, so the agent's own model cannot approve anything.
+
+**Speech:** on Windows, the bundled helper uses System.Speech with an installed offline recognizer and system voice. Missing language/audio devices produce an actionable error; ElevenLabs remains optional. On Mac, the native Swift helper requires Microphone and Speech Recognition consent. It refuses to fall back to remote Apple recognition if on-device recognition is unavailable. English (UK) is the initial recognition locale. Optional ElevenLabs speech input/output uses your explicitly configured existing key and account allowance; recording is manually ended in this version. No paid model API is configured by default.
+
+**Files:** choose allowed folders in Settings. Tools list directories and read bounded text documents. Hidden and credential paths and symlink escapes are rejected. PDFs, receipt OCR, email and WhatsApp connectors are not implemented in this first version; they require a suitable connected tool or a tested browser/native-app workflow.
 
 ## Data and second brain
 

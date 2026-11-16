@@ -1,0 +1,67 @@
+name: Release Alfred
+# Push a tag like v0.2.0 to build both packages and publish them as a GitHub release.
+# Assets use fixed names so alfred.nz can link to releases/latest/download/<name>.
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+jobs:
+  mac:
+    runs-on: macos-latest # Apple Silicon
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node node_modules/electron/install.js
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run package:mac
+      - run: |
+          ditto -c -k --keepParent release/Alfred.app release/Alfred-mac-arm64.zip
+          cd release && shasum -a 256 Alfred-mac-arm64.zip > Alfred-mac-arm64.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac
+          path: release/Alfred-mac-arm64.zip*
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: node node_modules/electron/install.js
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run package:windows
+      - run: npm run test:windows
+      - shell: bash
+        run: |
+          cd release && cp Alfred-*-windows-x64.zip Alfred-windows-x64.zip
+          sha256sum Alfred-windows-x64.zip > Alfred-windows-x64.zip.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: release/Alfred-windows-x64.zip*
+  publish:
+    needs: [mac, windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: assets
+          merge-multiple: true
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" assets/* -R "$GITHUB_REPOSITORY" --title "Alfred $GITHUB_REF_NAME" --notes "Early preview. The builds are not signed by Apple or Microsoft, so your computer warns you the first time you open Alfred. Mac package is for Apple Silicon."

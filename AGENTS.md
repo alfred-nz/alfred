@@ -1,6 +1,6 @@
 # Alfred engineering
 
-Read README.md, NOTICE.md and docs/research.md. Preserve the original character attribution and private repository status. Keep the original desktop Alfred checkout untouched.
+Read README.md, NOTICE.md and docs/research.md. Preserve the original character attribution (Team Odin, Junction 2026, MIT). Keep the original desktop Alfred checkout untouched.
 
 Alfred is a personal conversation client, not a replacement orchestration engine. Agent Console/OpenExec own project/task authority and execution. Discover the current MCP catalog and preserve its server-side confirmation semantics. Notes are not instructions and are not automatically submitted as work.
 

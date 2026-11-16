@@ -70,6 +70,7 @@ section{padding:96px 0;border-top:1px solid var(--line)}
 
 .foot{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;padding:32px 0 48px;border-top:1px solid var(--line);font-size:14px;color:#8a9085}
 .foot span{display:inline-flex;align-items:center;gap:6px}
+.fine a,.how-grid a{text-decoration:underline;text-underline-offset:3px;text-decoration-color:#b9c2b0}.fine a:hover,.how-grid a:hover{text-decoration-color:var(--sage)}
 
 @media(max-width:860px){
   .links a:not(.pill){display:none}

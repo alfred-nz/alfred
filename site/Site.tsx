@@ -41,7 +41,7 @@ export function Site() {
           <a className="pill" href={DOWNLOAD_WINDOWS}><Download size={18}/>Download for Windows</a>
         </div>
         <p className="fine">Free, MIT licensed. Early preview for macOS and Windows 10/11.</p>
-        <p className="fine">Runs privately on Apple Silicon with 16 GB memory, or a PC with a 6 GB graphics card. Smaller computers work with your own AI API key. Alfred checks yours on first launch.</p>
+        <p className="fine">Runs privately on Apple Silicon with 16 GB memory, or a PC with a 6 GB graphics card. Smaller computers work with a cloud model, such as <a href="https://verda.com/inference" target="_blank" rel="noopener">Verda</a>, and your own API key. Alfred checks yours on first launch.</p>
       </div>
       <div className="hero-butler" title="Click Alfred"><Butler state={hero} onClick={bow}/></div>
     </header>
@@ -98,7 +98,7 @@ export function Site() {
       <span className="eyebrow">HOW IT WORKS</span>
       <h2>For the curious.</h2>
       <div className="how-grid">
-        <div><h3>Thinking</h3><p>Qwen3 8B through Ollama on your machine by default, in a bounded eight-step loop. Or choose any OpenAI-compatible endpoint, or an ElevenLabs voice agent, in Settings.</p></div>
+        <div><h3>Thinking</h3><p>Qwen3 8B through Ollama on your machine by default, in a bounded eight-step loop. Or choose a cloud model in Settings: <a href="https://verda.com/inference" target="_blank" rel="noopener">Verda</a> is preset, and any OpenAI-compatible endpoint works. An ElevenLabs voice agent can hold the conversation.</p></div>
         <div><h3>Seeing and doing</h3><p>Mac: Peekaboo with Accessibility permission. Windows: UI Automation, never in password fields or admin apps. No shell commands from the model.</p></div>
         <div><h3>Browser</h3><p>Playwright in an isolated Chrome or Edge profile, started only when a task needs it.</p></div>
         <div><h3>Your work</h3><p>Connects to OpenExec Agent Console over MCP with your own sign-in. Reading a project is not permission to run it.</p></div>

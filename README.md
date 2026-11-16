@@ -60,7 +60,7 @@ npm run test:desktop
 
 The last three commands run on the Mac because they package/test a native desktop app. The desktop smoke test uses disposable app data and an isolated browser. It runs the actual local model and records screenshots beneath ignored `test-results/`.
 
-The packaged app is locally/ad-hoc signed, not Apple-notarized or auto-updating. Launch at login is not enabled automatically. No background email/bill scanning, payment automation, messaging, merge or deployment is scheduled.
+Release builds of the Mac app are Developer ID signed (Valkohelmi Oy) and notarized by Apple; see `scripts/notarize-mac.sh` and the release workflow. Local `npm run package:mac` builds are ad-hoc signed unless `MAC_SIGN_IDENTITY` is set. The app does not auto-update. Launch at login is not enabled automatically. No background email/bill scanning, payment automation, messaging, merge or deployment is scheduled.
 
 See [research](docs/research.md) and [verification](docs/verification.md) for actual evidence and remaining limits.
 

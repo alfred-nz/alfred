@@ -96,7 +96,18 @@ export class MCP {
   async call(name:string,args:Record<string,unknown>,signal?:AbortSignal) {
     const target=this.names.get(name);if(!target)throw new Error('Tool is not in the connected catalog.');
     const client=this.clients.get(target.source);if(!client)throw new Error('Connection closed.');
-    return client.callTool({name:target.name,arguments:args},undefined,{signal,timeout:60000});
+    const result=await client.callTool({name:target.name,arguments:args},undefined,{signal,timeout:60000});
+    // Recent Playwright versions save automatic snapshots to files. Fetch the
+    // read-only snapshot through MCP so the planner receives actual page refs;
+    // never open a tool-supplied filesystem path or repeat the original action.
+    const content=Array.isArray(result.content)?result.content:[];
+    if(target.source==='browser'&&target.name!=='browser_snapshot'&&!result.isError&&content.some(c=>c.type==='text'&&typeof c.text==='string'&&c.text.includes('### Snapshot')&&c.text.includes('[Snapshot]('))){
+      try{
+        const observed=await client.callTool({name:'browser_snapshot',arguments:{}},undefined,{signal,timeout:60000});
+        return {...result,content:[...content,...(Array.isArray(observed.content)?observed.content:[])]};
+      }catch(error){return {...result,content:[...content,{type:'text',text:'The action returned, but its follow-up page observation failed. Observe the page before another action.'}]};}
+    }
+    return result;
   }
   async close(){this.callback?.close();await Promise.allSettled([...this.clients.values()].map(c=>c.close()));}
 }

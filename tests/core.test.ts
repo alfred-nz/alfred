@@ -78,3 +78,18 @@ test('OpenAI-compatible tool calls send reasoning_content back on the next reque
     assert.equal(bodies[1].messages.at(-1).tool_call_id,'call_1');assert.equal(store.data.messages.at(-1)?.text,'Finder is running.');
   }finally{global.fetch=original;}
 });
+test('OpenAI-compatible errors show the provider\'s message when it sends one',async()=>{
+  const original=global.fetch;let reply:Response;
+  global.fetch=async()=>reply;
+  try{
+    const store=new Store(fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'alfred-test-'))));
+    Object.assign(store.data.settings,{provider:'openai',openaiUrl:'https://inference.verda.com/v1',openaiModel:'kimi-k3-1-pro'});
+    const engine=new Engine(store,{tools:[]} as any,()=>{});
+    reply=new Response(JSON.stringify({error:{type:'permission_error',code:'subscription_required',message:'this project is not subscribed to model "kimi-k3-1-pro"'}}),{status:403});
+    await engine.send('Hello');
+    assert.match(store.data.messages.at(-1)?.text||'',/HTTP 403 \(“this project is not subscribed to model "kimi-k3-1-pro"”\)\. Check the model/);
+    reply=new Response('<html>Bad gateway</html>',{status:502});
+    await engine.send('Hello again');
+    assert.equal(store.data.messages.at(-1)?.text,'The model endpoint returned HTTP 502. Check the model and key in Settings.');
+  }finally{global.fetch=original;}
+});

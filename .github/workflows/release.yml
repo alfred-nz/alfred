@@ -9,7 +9,9 @@ permissions:
 jobs:
   mac:
     runs-on: macos-latest # Apple Silicon
-    timeout-minutes: 20
+    timeout-minutes: 45 # notarization usually takes minutes, occasionally longer
+    env:
+      MAC_SIGN_IDENTITY: 'Developer ID Application: Valkohelmi Oy (4CA9Q5448J)'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -21,14 +23,36 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - name: Import the Developer ID certificate into a temporary keychain
+        env:
+          MAC_CERT_P12_BASE64: ${{ secrets.MAC_CERT_P12_BASE64 }}
+          MAC_CERT_PASSWORD: ${{ secrets.MAC_CERT_PASSWORD }}
+        run: |
+          KC="$RUNNER_TEMP/signing.keychain-db"; KP="$(openssl rand -hex 16)"
+          security create-keychain -p "$KP" "$KC"
+          security set-keychain-settings -lut 21600 "$KC"
+          security unlock-keychain -p "$KP" "$KC"
+          curl -sfL -o "$RUNNER_TEMP/DeveloperIDG2CA.cer" https://www.apple.com/certificateauthority/DeveloperIDG2CA.cer
+          security import "$RUNNER_TEMP/DeveloperIDG2CA.cer" -k "$KC"
+          echo "$MAC_CERT_P12_BASE64" | base64 --decode > "$RUNNER_TEMP/cert.p12"
+          security import "$RUNNER_TEMP/cert.p12" -k "$KC" -P "$MAC_CERT_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/cert.p12"
+          security set-key-partition-list -S apple-tool:,apple: -s -k "$KP" "$KC" >/dev/null
+          security list-keychains -d user -s "$KC" $(security list-keychains -d user | tr -d '"')
+          security find-identity -v -p codesigning "$KC"
       - run: npm run package:mac
-      - run: |
-          ditto -c -k --keepParent release/Alfred.app release/Alfred-mac-arm64.zip
-          cd release && shasum -a 256 Alfred-mac-arm64.zip > Alfred-mac-arm64.zip.sha256
+      - name: Build the DMG, notarize it and staple the tickets
+        env:
+          NOTARY_KEY_P8: ${{ secrets.NOTARY_KEY_P8 }}
+          NOTARY_KEY_ID: ${{ secrets.NOTARY_KEY_ID }}
+          NOTARY_ISSUER_ID: ${{ secrets.NOTARY_ISSUER_ID }}
+        run: bash scripts/notarize-mac.sh
       - uses: actions/upload-artifact@v4
         with:
           name: mac
-          path: release/Alfred-mac-arm64.zip*
+          path: |
+            release/Alfred-mac-arm64.zip*
+            release/Alfred-mac-arm64.dmg*
   windows:
     runs-on: windows-latest
     timeout-minutes: 20
@@ -64,4 +88,4 @@ jobs:
           merge-multiple: true
       - env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" assets/* -R "$GITHUB_REPOSITORY" --title "Alfred $GITHUB_REF_NAME" --notes "Early preview. The builds are not signed by Apple or Microsoft, so your computer warns you the first time you open Alfred. Mac package is for Apple Silicon."
+        run: gh release create "$GITHUB_REF_NAME" assets/* -R "$GITHUB_REPOSITORY" --title "Alfred $GITHUB_REF_NAME" --notes "Early preview. The Mac app is signed and notarized by Apple (Apple Silicon). The Windows build is not signed yet, so Windows warns you the first time you open Alfred."

@@ -4,7 +4,7 @@ import { AlfredCharacter } from '../src/components/AlfredCharacter';
 import type { ButlerState } from '../shared/types';
 
 // Built and published by .github/workflows/release.yml on a v* tag.
-const DOWNLOAD_MAC = 'https://github.com/alfred-nz/alfred/releases/latest/download/Alfred-mac-arm64.zip';
+const DOWNLOAD_MAC = 'https://github.com/alfred-nz/alfred/releases/latest/download/Alfred-mac-arm64.dmg';
 const DOWNLOAD_WINDOWS = 'https://github.com/alfred-nz/alfred/releases/latest/download/Alfred-windows-x64.zip';
 
 const noop = () => {};
@@ -109,7 +109,7 @@ export function Site() {
       <span className="eyebrow">HONEST LIMITS</span>
       <h2>What Alfred doesn’t do yet.</h2>
       <ul>
-        <li>The builds are not yet signed by Apple or Microsoft, so your computer will warn you when you first open him.</li>
+        <li>The Mac app is signed and notarized by Apple. The Windows build is not yet signed by Microsoft, so Windows will warn you when you first open him.</li>
         <li>You need Ollama installed for anything beyond saving notes.</li>
         <li>No email, payments or messaging.</li>
         <li><b>Stop</b> halts what is running; it can’t undo an action that has already happened.</li>
@@ -132,7 +132,7 @@ export function Site() {
           <a className="pill dark" href={DOWNLOAD_MAC}><Download size={18}/>Alfred for Mac</a>
           <a className="pill" href={DOWNLOAD_WINDOWS}><Download size={18}/>Alfred for Windows</a>
         </div>
-        <p className="fine">Mac: Apple Silicon, with Ollama. Shortcut ⌥ Space. Windows 10/11 x64: portable ZIP, an installed speech language, Ollama. Shortcut Ctrl Shift Space.</p>
+        <p className="fine">Mac: Apple Silicon, with Ollama; open the DMG and drag Alfred to Applications. Shortcut ⌥ Space. Windows 10/11 x64: portable ZIP, an installed speech language, Ollama. Shortcut Ctrl Shift Space.</p>
       </div>
     </section>
 

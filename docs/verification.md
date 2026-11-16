@@ -36,3 +36,17 @@ No production Console tasks, private messages, financial actions, merges or depl
 Installed at `~/Applications/Alfred.app`; source checkout at `~/projects/alfred-openexec`. The final attempted interactive sign-in/voice inspection was blocked because the Mac was locked and the computer-use tool could not unlock it. No account or macOS permission was bypassed. The app is built and installed, but Console sign-in, microphone transcription, and native clicks remain pending owner interaction.
 
 Final package correction: excluded development `.bin` symlinks referring to the intentionally omitted Electron package. The packaging script now performs strict deep signature verification and succeeds. Initial GitHub CI passed all type, unit and production-build checks.
+
+## Windows adaptation — 16 November 2026
+
+The Windows helper was exercised on GitHub's Windows runner against a disposable WinForms application, not against the owner's data. Native observation excluded the password value; text replacement was verified through UI Automation; a button invocation was verified by observing the changed label. Reusing the action snapshot was refused. Native speech synthesized an actual WAV. The packaged Electron app launched and retained an idea across a complete quit/relaunch. A deterministic planner fixture selected the real native tool and its result was retained. This tests integration, not live Windows LLM quality.
+
+The Windows screenshots were visually reviewed. The first capture revealed that unconditional conversation scrolling clipped the welcome header on a shorter Windows desktop. Scrolling now occurs only when messages exist, and compact-height spacing keeps the character, suggestions, composer and shortcut visible together.
+
+Interventions:
+- The first Windows compiler attempt treated a slash-separated source path incorrectly. Passing an absolute native path fixed compilation.
+- The browser test initially timed out despite a successful real navigation. Inspection of persisted receipts revealed that the current Playwright version writes automatic snapshots to a file and returns its link. Alfred now requests the explicit read-only snapshot through MCP after such results, so the planner receives real page content and element references. It never opens a tool-provided file path or retries the original action. Additional tests cover that observation and failure handling.
+
+The Windows package is an unsigned x64 portable preview. Live microphone input, audible output on the friend's speakers, ElevenLabs account access, Console sign-in/task execution, and real-model Windows planning still need device/account verification. No paid speech requests were made. The test runner's recognition language inventory is recorded in its evidence. The Windows helper supports accessible controls rather than arbitrary pixel input, elevated windows or the secure desktop.
+
+Final Windows run [43883018777](https://github.com/openexec/alfred/actions/runs/43883018777), implementation commit `7c09144`, passed both jobs: type checks, all 16 automated tests, production build, Windows packaging, native UIA/speech tests and the packaged Electron/browser smoke journey. The browser test verified both rejected navigation (no execution) and approved navigation with actual page-heading content. The workflow produced the `Alfred-windows-x64` ZIP/checksum artifact and `windows-test-evidence` screenshots/summary. The downloadable package is built from this tested implementation; subsequent documentation-only changes do not alter its binaries.

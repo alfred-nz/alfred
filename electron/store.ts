@@ -3,7 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Idea, Message, Settings } from '../shared/contract';
 
-export const defaults: Settings = { model:'qwen3:8b', ollamaUrl:'http://127.0.0.1:11434', consoleUrl:'https://connect.perttu.ai/mcp', voice:'system', elevenVoice:'JBFqnCBsd6RMkjVDRZzb', speakReplies:true, roots:[] };
+export const defaults: Settings = { provider:'ollama', model:'qwen3:8b', ollamaUrl:'http://127.0.0.1:11434', openaiUrl:'https://api.openai.com/v1', openaiModel:'', consoleUrl:'https://connect.perttu.ai/mcp', voice:'system', elevenVoice:'JBFqnCBsd6RMkjVDRZzb', elevenAgent:'', speakReplies:true, roots:[] };
 export class Store {
   data: { settings: Settings; messages: Message[]; ideas: Idea[] };
   constructor(readonly directory: string) {
@@ -38,7 +38,7 @@ export function validateEndpoint(value: string, localOnly=false) {
 
 export function allowedFile(roots: string[], requested: string) {
   const resolved=fs.realpathSync(requested);
-  if(!roots.some(root=>{const rel=path.relative(fs.realpathSync(root),resolved);return rel===''||(!rel.startsWith('..'+path.sep)&&rel!=='..'&&!path.isAbsolute(rel));})) throw new Error('Choose this folder in Connections before reading it.');
+  if(!roots.some(root=>{const rel=path.relative(fs.realpathSync(root),resolved);return rel===''||(!rel.startsWith('..'+path.sep)&&rel!=='..'&&!path.isAbsolute(rel));})) throw new Error('Choose this folder in Settings before reading it.');
   const parts=resolved.split(path.sep);
   if(parts.some(p=>p.startsWith('.')||/^(credentials|auth\.json|.*secrets.*|.*\.pem|.*\.key)$/i.test(p))) throw new Error('Credential and hidden paths are not readable through Alfred tools.');
   return resolved;

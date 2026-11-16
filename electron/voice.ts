@@ -36,7 +36,7 @@ export class Voice {
   async speak(text:string):Promise<string|undefined>{
     this.stopSpeaking();if(!this.settings().speakReplies)return;
     if(this.settings().voice==='elevenlabs'){
-      const key=this.vault.get('elevenlabs');if(!key)throw new Error('Add your existing ElevenLabs key in Connections.');
+      const key=this.vault.get('elevenlabs');if(!key)throw new Error('Add your existing ElevenLabs key in Settings.');
       const r=await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(this.settings().elevenVoice)}`,{method:'POST',headers:{'xi-api-key':key,'Content-Type':'application/json'},body:JSON.stringify({text:text.slice(0,4000),model_id:'eleven_multilingual_v2'}),signal:AbortSignal.timeout(45000)});
       if(!r.ok)throw new Error(`ElevenLabs speech failed (${r.status}).`);
       return Buffer.from(await r.arrayBuffer()).toString('base64');

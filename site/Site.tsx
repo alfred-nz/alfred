@@ -82,7 +82,7 @@ export function Site() {
     </section>
 
     <section className="trust">
-      <div className="trust-item"><HardDrive size={28}/><h3>Local</h3><p>The AI model runs on your computer through Ollama. Speech uses your system’s offline voice.</p></div>
+      <div className="trust-item"><HardDrive size={28}/><h3>Local</h3><p>By default the AI model runs on your computer through Ollama, and speech uses your system’s offline voice. Cloud models are your choice, never the default.</p></div>
       <div className="trust-item"><ShieldCheck size={28}/><h3>Asks first</h3><p>Each action needs a yes, bound to its exact details. Used once, then it expires.</p></div>
       <div className="trust-item"><Lock size={28}/><h3>Yours</h3><p>Notes and history stay on your computer. Keys are encrypted by your Keychain or Windows.</p></div>
     </section>
@@ -97,7 +97,7 @@ export function Site() {
       <span className="eyebrow">HOW IT WORKS</span>
       <h2>For the curious.</h2>
       <div className="how-grid">
-        <div><h3>Thinking</h3><p>Qwen3 8B through Ollama on your machine, in a bounded eight-step loop. No paid AI service is used.</p></div>
+        <div><h3>Thinking</h3><p>Qwen3 8B through Ollama on your machine by default, in a bounded eight-step loop. Or choose any OpenAI-compatible endpoint, or an ElevenLabs voice agent, in Settings.</p></div>
         <div><h3>Seeing and doing</h3><p>Mac: Peekaboo with Accessibility permission. Windows: UI Automation, never in password fields or admin apps. No shell commands from the model.</p></div>
         <div><h3>Browser</h3><p>Playwright in an isolated Chrome or Edge profile, started only when a task needs it.</p></div>
         <div><h3>Your work</h3><p>Connects to OpenExec Agent Console over MCP with your own sign-in. Reading a project is not permission to run it.</p></div>

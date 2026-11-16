@@ -55,7 +55,7 @@ export class MCP {
         const fresh=new StreamableHTTPClientTransport(new URL(url),{authProvider:provider});
         await client.connect(fresh);await this.catalog('console',client);
         res.end('Alfred is connected. You can return to Alfred.');
-      }catch{res.writeHead(500);res.end('Alfred could not complete sign-in. Return to Connections and retry.');}
+      }catch{res.writeHead(500);res.end('Alfred could not complete sign-in. Return to Settings and retry.');}
       finally{server.close();this.changed();}
     });
     await new Promise<void>((resolve,reject)=>{server.once('error',reject);server.listen(17843,'127.0.0.1',()=>resolve());});
@@ -73,7 +73,7 @@ export class MCP {
       saveTokens:(tokens)=>save({tokens}),
       saveCodeVerifier:(value)=>{verifier=value;},
       codeVerifier:()=>verifier,
-      redirectToAuthorization:async(authURL)=>{if(!interactive)throw new Error('Sign in again from Connections.');await this.openURL(authURL.toString());},
+      redirectToAuthorization:async(authURL)=>{if(!interactive)throw new Error('Sign in again from Settings.');await this.openURL(authURL.toString());},
       invalidateCredentials:(scope)=>{if(scope==='tokens')save({tokens:undefined});else if(scope==='client')save({client:undefined});else if(scope==='all')this.vault.set(key,{});}
     };
     // Persisted registrations can refresh without a callback. Re-register if no tokens.

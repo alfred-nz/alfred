@@ -48,3 +48,33 @@ test('model-requested writes wait for exact owner approval; rejection performs n
     reply=0;await engine.send('Run task one');const id=engine.approval.pending!.id;await engine.decide(id,true);assert.equal(calls,1);await assert.rejects(()=>engine.decide(id,true));assert(store.data.messages.some(m=>m.tool==='console__run_task'));
   }finally{global.fetch=original;}
 });
+test('OpenAI-compatible reasoning models: empty content falls back to reasoning_content; a reply cut off while thinking is an error',async()=>{
+  const original=global.fetch;let body:any;
+  global.fetch=async()=>new Response(JSON.stringify(body),{status:200});
+  try{
+    const store=new Store(fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'alfred-test-'))));
+    Object.assign(store.data.settings,{provider:'openai',openaiUrl:'https://inference.verda.com/v1',openaiModel:'deepseek-4-1-flash-1017'});
+    const engine=new Engine(store,{tools:[]} as any,()=>{});
+    body={choices:[{finish_reason:'stop',message:{role:'assistant',content:null,reasoning_content:'Try Suomenlinna at sunset.'}}]};
+    await engine.send('What is the best viewpoint in Helsinki?');
+    assert.equal(store.data.messages.at(-1)?.text,'Try Suomenlinna at sunset.');
+    body={choices:[{finish_reason:'length',message:{role:'assistant',content:'',reasoning_content:'Let me think'}}]};
+    await engine.send('And another?');
+    assert.match(store.data.messages.at(-1)?.text||'',/reply budget/);
+  }finally{global.fetch=original;}
+});
+test('OpenAI-compatible tool calls send reasoning_content back on the next request',async()=>{
+  const original=global.fetch;const bodies:any[]=[];let reply=0;
+  const fake={tools:[{name:'local__list_apps',source:'local',readOnly:true,description:'List apps',parameters:{type:'object'}}],call:async()=>({apps:['Finder']})};
+  global.fetch=async(_url:any,init:any)=>{bodies.push(JSON.parse(init.body));return new Response(JSON.stringify({choices:[reply++===0
+    ?{finish_reason:'tool_calls',message:{role:'assistant',content:null,reasoning_content:'I should list the apps.',tool_calls:[{id:'call_1',type:'function',function:{name:'local__list_apps',arguments:'{}'}}]}}
+    :{finish_reason:'stop',message:{role:'assistant',content:'Finder is running.'}}]}),{status:200});};
+  try{
+    const store=new Store(fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(),'alfred-test-'))));
+    Object.assign(store.data.settings,{provider:'openai',openaiUrl:'https://inference.verda.com/v1',openaiModel:'kimi-k3-1-pro'});
+    await new Engine(store,fake as any,()=>{}).send('Which apps are running?');
+    const assistant=bodies[1].messages.find((m:any)=>m.tool_calls);
+    assert.equal(assistant.reasoning_content,'I should list the apps.');assert.equal(assistant.tool_calls[0].id,'call_1');
+    assert.equal(bodies[1].messages.at(-1).tool_call_id,'call_1');assert.equal(store.data.messages.at(-1)?.text,'Finder is running.');
+  }finally{global.fetch=original;}
+});

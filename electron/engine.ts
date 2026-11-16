@@ -82,12 +82,18 @@ export class Engine {
     }
     const key=this.secret('openai');
     const messages=[{role:'system',content:system},...this.context.map(m=>m.role==='tool'?{role:'tool',tool_call_id:m.tool_call_id,content:m.content}
-      :m.tool_calls?{role:'assistant',content:m.content||null,tool_calls:m.tool_calls.map((c:any)=>({id:c.id,type:'function',function:{name:c.function.name,arguments:JSON.stringify(c.function.arguments)}}))}
+      :m.tool_calls?{role:'assistant',content:m.content||null,...(m.reasoning_content?{reasoning_content:m.reasoning_content}:{}),tool_calls:m.tool_calls.map((c:any)=>({id:c.id,type:'function',function:{name:c.function.name,arguments:JSON.stringify(c.function.arguments)}}))}
       :{role:m.role,content:m.content})];
     const response=await fetch(settings.openaiUrl+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json',...(key?{Authorization:'Bearer '+key}:{})},body:JSON.stringify({model:settings.openaiModel,messages,tools:functions,temperature:0.15}),signal:timeout});
     if(!response.ok)throw new Error(`The model endpoint returned HTTP ${response.status}. Check the model and key in Settings.`);
-    const message=(await response.json() as any).choices?.[0]?.message;
+    const choice=(await response.json() as any).choices?.[0];const message=choice?.message;
     if(!message)return undefined;
+    // Reasoning models (Kimi and DeepSeek on Verda) return thinking in reasoning_content; it is sent back with tool calls above.
+    // If content is still empty, show the reasoning rather than nothing.
+    if(!message.content&&!message.tool_calls?.length){
+      if(choice.finish_reason==='length')throw new Error('The model used its whole reply budget while thinking. Try again, or choose a faster model in Settings.');
+      message.content=message.reasoning_content||'';
+    }
     // Normalize to the Ollama shape used everywhere else: arguments as an object, every call with an id.
     return {...message,tool_calls:message.tool_calls?.map((c:any)=>{let args:unknown;try{args=JSON.parse(c.function?.arguments||'{}');}catch{args=undefined;}return {id:c.id||randomUUID(),function:{name:c.function?.name,arguments:args}};})};
   }

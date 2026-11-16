@@ -2,7 +2,7 @@
 
 A voice-first personal companion for OpenExec on macOS and Windows 10/11 x64. Keep the Alfred character; replace the hackathon's social and payment demos with conversation, local desktop tools, your existing Agent Console, and a durable ideas inbox.
 
-Private adaptation of the team's Alfred. See [NOTICE.md](NOTICE.md) before distributing any source or artwork.
+Built by Team Odin at Junction 2026; MIT licensed. See [NOTICE.md](NOTICE.md).
 
 ## Use
 

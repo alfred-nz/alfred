@@ -7,6 +7,7 @@ import { MCP, Vault } from './mcp';
 import { Engine } from './engine';
 import { Voice } from './voice';
 import { desktopFor } from './desktop';
+import { probe } from './hardware';
 import { Keys, Pending, Settings, Status } from '../shared/contract';
 
 app.setName('Alfred');
@@ -80,6 +81,7 @@ async function main(){
     if(patch.voice==='system'||patch.voice==='elevenlabs'||patch.voice==='agent')clean.voice=patch.voice;
     if(patch.elevenAgent!==undefined){if(!/^[a-zA-Z0-9_-]{0,100}$/.test(patch.elevenAgent))throw new Error('Invalid agent ID.');clean.elevenAgent=patch.elevenAgent;}
     if(patch.speakReplies!==undefined)clean.speakReplies=!!patch.speakReplies;
+    if(patch.welcomed!==undefined)clean.welcomed=!!patch.welcomed;
     if(patch.elevenVoice!==undefined){if(!/^[a-zA-Z0-9_-]{1,100}$/.test(patch.elevenVoice))throw new Error('Invalid voice ID.');clean.elevenVoice=patch.elevenVoice;}
     if(keys?.elevenlabs?.trim())vault.set('elevenlabs',keys.elevenlabs.trim());
     if(keys?.openai?.trim())vault.set('openai',keys.openai.trim());
@@ -88,6 +90,7 @@ async function main(){
   handle('connectConsole',async()=>{try{status.console='Connecting…';changed();await mcp.console(store.data.settings.consoleUrl);}catch(e){status.console=(e as Error).message;throw e;}finally{changed();}});
   handle('connectBrowser',async()=>{try{await mcp.browser(root,app.getPath('userData'));}catch(e){status.browser='Could not start browser tools';throw e;}finally{changed();}});
   handle('check',check);
+  handle('hardware',()=>probe());
   // ElevenLabs agent mode: the key stays here; the window only gets a short-lived signed URL.
   handle('agentUrl',async()=>{
     const agent=store.data.settings.elevenAgent;const key=vault.get('elevenlabs');

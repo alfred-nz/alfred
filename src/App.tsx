@@ -2,14 +2,14 @@ import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUp, AudioLines, Brain, Check, ChevronRight, CircleHelp, Command, Folder, Headphones, Lightbulb, Link, MessageCircle, Mic, Monitor, Plus, Settings2, Square, Trash2, Volume2, VolumeX, X } from 'lucide-react';
 import { Conversation } from '@elevenlabs/client';
 import { AlfredCharacter } from './components/AlfredCharacter';
-import type { Status, Settings, Message } from '../shared/contract';
+import type { Status, Settings, Message, Hardware } from '../shared/contract';
 import './index.css';
 
 export function App(){
   const [state,setState]=useState<Status>();const [page,setPage]=useState<'talk'|'ideas'|'activity'|'settings'>('talk');
   const [draft,setDraft]=useState('');const [error,setError]=useState('');
   const [listening,setListening]=useState(false);const [speaking,setSpeaking]=useState(false);const [handsFree,setHandsFree]=useState(false);
-  const [partial,setPartial]=useState('');const [form,setForm]=useState<Partial<Settings>>({});const [key,setKey]=useState('');const [openaiKey,setOpenaiKey]=useState('');const [saved,setSaved]=useState(false);
+  const [partial,setPartial]=useState('');const [form,setForm]=useState<Partial<Settings>>({});const [key,setKey]=useState('');const [openaiKey,setOpenaiKey]=useState('');const [saved,setSaved]=useState(false);const [hw,setHw]=useState<Hardware>();
   const lastSpoken=useRef('');const initialized=useRef(false);const scroll=useRef<HTMLDivElement>(null);const busy=useRef(false);
   const stateRef=useRef(state);stateRef.current=state;const handsFreeRef=useRef(handsFree);handsFreeRef.current=handsFree;
   const listeningRef=useRef(listening);listeningRef.current=listening;
@@ -55,6 +55,7 @@ export function App(){
   useEffect(()=>{
     if(!window.alfred){setError('Open the Alfred desktop app to use its tools.');return;}
     window.alfred.state().then(s=>{setState(s);lastSpoken.current=s.messages.filter(m=>m.role==='assistant').at(-1)?.id||'';initialized.current=true;});
+    window.alfred.hardware().then(setHw).catch(()=>{});
     const unState=window.alfred.onState(setState);
     const unSpeech=window.alfred.onSpeech((e:any)=>{
       if(e.toggle){void toggleRef.current();return;}
@@ -83,7 +84,8 @@ export function App(){
     })();
   },[state?.messages.length]);
   useEffect(()=>{busy.current=!!state?.busy;},[state?.busy]);
-  const openSettings=()=>{setForm(state?.settings||{});setSaved(false);setPage('settings');};
+  const openSettings=(patch:Partial<Settings>={})=>{setForm({...state?.settings,...patch});setSaved(false);setPage('settings');};
+  const welcome=(patch:Partial<Settings>={})=>attempt(()=>window.alfred.configure({...patch,welcomed:true}));
   const messages=state?.messages.filter(m=>m.role!=='tool')||[];
   const activity=state?.messages.filter(m=>m.role==='tool').slice().reverse()||[];
   const isWindows=state?.platform==='win32';
@@ -97,24 +99,38 @@ export function App(){
         <button className={page==='talk'?'selected':''} onClick={()=>setPage('talk')}><MessageCircle size={18}/>Conversation</button>
         <button className={page==='ideas'?'selected':''} onClick={()=>setPage('ideas')}><Lightbulb size={18}/>Ideas inbox<span className="count">{state?.ideas.length||0}</span></button>
         <button className={page==='activity'?'selected':''} onClick={()=>setPage('activity')}><AudioLines size={18}/>Activity</button>
-        <button className={page==='settings'?'selected':''} onClick={openSettings}><Settings2 size={18}/>Settings</button>
+        <button className={page==='settings'?'selected':''} onClick={()=>openSettings()}><Settings2 size={18}/>Settings</button>
       </nav>
       <div className="connection-list"><div className="workspace-label">AT YOUR SERVICE</div>
-        <Connection icon={<Monitor size={16}/>} name={isWindows?"This PC":"This Mac"} value={state?.mac} onClick={openSettings}/>
-        <Connection icon={<Command size={16}/>} name="Agent Console" value={state?.console} onClick={openSettings}/>
+        <Connection icon={<Monitor size={16}/>} name={isWindows?"This PC":"This Mac"} value={state?.mac} onClick={()=>openSettings()}/>
+        <Connection icon={<Command size={16}/>} name="Agent Console" value={state?.console} onClick={()=>openSettings()}/>
         <Connection icon={<Lightbulb size={16}/>} name="Your memory" value="Local ideas inbox" onClick={()=>setPage('ideas')}/>
       </div>
       <div className="sidebar-bottom"><div className="local-badge"><span className="dot"/> {state?.settings.provider==='openai'?'Model · your endpoint':'Local-first · on your '+computer}</div><div className="shortcut"><kbd>{state?.shortcut||'⌥ Space'}</kbd><span>Talk to Alfred</span></div></div>
     </aside>
     <main>
-      <header><div><span className="eyebrow">A LITTLE LESS SCREEN TIME</span><h1>{page==='talk'?'Make room for your day.':page==='ideas'?'A place for the next thought.':page==='settings'?'Make yourself at home.':'What actually happened.'}</h1></div><button className="icon-button" aria-label="Connections" onClick={openSettings}><Settings2 size={20}/></button></header>
+      <header><div><span className="eyebrow">A LITTLE LESS SCREEN TIME</span><h1>{page==='talk'?'Make room for your day.':page==='ideas'?'A place for the next thought.':page==='settings'?'Make yourself at home.':'What actually happened.'}</h1></div><button className="icon-button" aria-label="Connections" onClick={()=>openSettings()}><Settings2 size={20}/></button></header>
       {error&&<div className="error" role="alert"><CircleHelp size={18}/><span>{error}</span><button aria-label="Dismiss error" onClick={()=>setError('')}><X size={16}/></button></div>}
       {page==='talk'&&<>
         <div className="conversation" ref={scroll}>
           <section className={'welcome '+(messages.length?'compact':'')}>
-            <div className="character"><AlfredCharacter state={listening?'listening':speaking?'speaking':state?.busy?'thinking':state?.pending?'awaiting_approval':'idle'} prop="none" audioLevel={speaking?0.35:0} registerVolumeListener={()=>()=>{}} liveConnected={listening} isWalking={false} stayPut={true} walkDirection="left" onSummonClick={()=>void toggleListen()} onOpenSettingsDoubleClick={openSettings} onRightClickPreview={()=>{}} onPerformAction={()=>{}} onToggleStayPut={()=>{}} onMinimizeToTaskbar={()=>void window.alfred.hide()} onQuickListen={()=>void toggleListen()} onDragDelta={()=>{}}/></div>
+            <div className="character"><AlfredCharacter state={listening?'listening':speaking?'speaking':state?.busy?'thinking':state?.pending?'awaiting_approval':'idle'} prop="none" audioLevel={speaking?0.35:0} registerVolumeListener={()=>()=>{}} liveConnected={listening} isWalking={false} stayPut={true} walkDirection="left" onSummonClick={()=>void toggleListen()} onOpenSettingsDoubleClick={()=>openSettings()} onRightClickPreview={()=>{}} onPerformAction={()=>{}} onToggleStayPut={()=>{}} onMinimizeToTaskbar={()=>void window.alfred.hide()} onQuickListen={()=>void toggleListen()} onDragDelta={()=>{}}/></div>
             <div className="welcome-copy"><div className="status-pill"><span className={'dot '+(listening?'pulse':'')}/>{current}</div><h2>{messages.length?'At your service.':'Good ideas shouldn’t wait\nfor a keyboard.'}</h2><p>{messages.length?'Tell me what’s next.':`Tell me what’s on your mind. We can save a thought, look into something on your ${computer}, or pick up work with Agent Console.`}</p></div>
           </section>
+          {state&&!state.settings.welcomed&&hw&&<section className={'first-run '+hw.verdict}>
+            <span className="eyebrow">BEFORE WE BEGIN · THIS {computer.toUpperCase()}</span>
+            <h3>{hw.verdict==='good'?`This ${computer} can run Alfred privately.`:hw.verdict==='slow'?'Alfred will run here, but slowly.':`This ${computer} can’t run the local model.`}</h3>
+            <small>{(hw.appleSilicon?'Apple Silicon, ':'')+hw.memoryGB+' GB memory'+(hw.gpuGB?', '+hw.gpuGB+' GB graphics':'')+(hw.freeDiskGB!==undefined?', '+hw.freeDiskGB+' GB free disk':'')}</small>
+            {hw.reasons.map(r=><p key={r}>{r}</p>)}
+            {hw.verdict==='cloud'?<p>Use a cloud model instead: add an OpenAI-compatible endpoint and key. Saving notes works without any model.</p>
+              :state.model!=='Ready'&&<p>To run privately, install Ollama from ollama.com, then run <code>ollama pull {state.settings.model}</code>. Now: {state.model}.</p>}
+            <div className="row">
+              {hw.verdict!=='cloud'&&<button className={hw.verdict==='good'?'primary':'secondary'} onClick={()=>void welcome({provider:'ollama'})}>Use this {computer}</button>}
+              <button className={hw.verdict==='good'?'secondary':'primary'} onClick={()=>void welcome().then(()=>openSettings({provider:'openai'}))}>Use a cloud model</button>
+              {hw.verdict!=='cloud'&&state.model!=='Ready'&&<button className="quiet" onClick={()=>void attempt(()=>window.alfred.check())}>Check again</button>}
+              <button className="quiet" onClick={()=>void welcome()}>Just notes for now</button>
+            </div>
+          </section>}
           {!messages.length&&<div className="suggestions">
             <Suggestion icon={<Lightbulb size={20}/>} title="Keep a thought" text="Remember this: build a simpler receipts routine." onClick={()=>void send('Remember this: build a simpler receipts routine.')}/>
             <Suggestion icon={<Monitor size={20}/>} title={'Look around my '+computer} text="Which apps are running?" onClick={()=>void send('Which apps are running on my '+computer+'?')}/>
@@ -135,7 +151,7 @@ export function App(){
           <label>Model service<select value={form.provider||'ollama'} onChange={e=>setForm({...form,provider:e.target.value as Settings['provider']})}><option value="ollama">On this {computer} · Ollama</option><option value="openai">OpenAI-compatible endpoint</option></select></label>
           {form.provider==='openai'?<><label>Endpoint address<input value={form.openaiUrl||''} onChange={e=>setForm({...form,openaiUrl:e.target.value})} placeholder="https://api.openai.com/v1"/></label><label>Model<input value={form.openaiModel||''} onChange={e=>setForm({...form,openaiModel:e.target.value})} placeholder="for example gpt-4.1-mini"/></label><label>API key<input type="password" autoComplete="off" value={openaiKey} onChange={e=>setOpenaiKey(e.target.value)} placeholder="Leave blank to keep the saved key"/></label><small>Works with OpenAI, Google AI Studio, OpenRouter, LM Studio, vLLM and others that offer /chat/completions with tool calling. Your messages, and what Alfred reads from your screen and files, are sent to this endpoint.</small></>
           :<><label>Ollama address<input value={form.ollamaUrl||''} onChange={e=>setForm({...form,ollamaUrl:e.target.value})}/></label><label>Model<input value={form.model||''} onChange={e=>setForm({...form,model:e.target.value})}/></label></>}
-          <small>{state?.model}</small></section>
+          <small>{state?.model}</small>{hw&&<small>This {computer}: {(hw.appleSilicon?'Apple Silicon, ':'')+hw.memoryGB+' GB memory'+(hw.gpuGB?', '+hw.gpuGB+' GB graphics':'')+(hw.freeDiskGB!==undefined?', '+hw.freeDiskGB+' GB free disk':'')}. {hw.verdict==='good'?'Runs the local model well.':hw.verdict==='slow'?'Runs the local model slowly.':'Too small for the local model; use an endpoint.'}</small>}</section>
         <section><h3><Mic size={18}/>Voice</h3><label>Voice service<select value={form.voice||'system'} onChange={e=>setForm({...form,voice:e.target.value as Settings['voice']})}><option value="system">{isWindows?'Windows speech · offline':'Mac speech · on-device'}</option><option value="elevenlabs">My ElevenLabs account · speech</option><option value="agent">My ElevenLabs agent · live conversation</option></select></label>
           {form.voice==='system'&&<p>{isWindows?'Windows speech needs an installed offline speech language and microphone access.':'Mac speech needs Microphone and Speech Recognition permission.'} Conversation mode listens again after Alfred finishes replying.</p>}
           {form.voice!=='system'&&<label>ElevenLabs key<input type="password" autoComplete="off" value={key} onChange={e=>setKey(e.target.value)} placeholder="Leave blank to keep the saved key"/></label>}

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { Idea, Message, Settings } from '../shared/contract';
 
-export const defaults: Settings = { provider:'ollama', model:'qwen3:8b', ollamaUrl:'http://127.0.0.1:11434', openaiUrl:'https://api.openai.com/v1', openaiModel:'', consoleUrl:'https://connect.perttu.ai/mcp', voice:'system', elevenVoice:'JBFqnCBsd6RMkjVDRZzb', elevenAgent:'', speakReplies:true, roots:[] };
+export const defaults: Settings = { provider:'ollama', model:'qwen3:8b', ollamaUrl:'http://127.0.0.1:11434', openaiUrl:'https://api.openai.com/v1', openaiModel:'', consoleUrl:'https://connect.perttu.ai/mcp', voice:'system', elevenVoice:'JBFqnCBsd6RMkjVDRZzb', elevenAgent:'', speakReplies:true, roots:[], welcomed:false };
 export class Store {
   data: { settings: Settings; messages: Message[]; ideas: Idea[] };
   constructor(readonly directory: string) {

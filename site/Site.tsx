@@ -41,6 +41,7 @@ export function Site() {
           <a className="pill" href={DOWNLOAD_WINDOWS}><Download size={18}/>Download for Windows</a>
         </div>
         <p className="fine">Free, MIT licensed. Early preview for macOS and Windows 10/11.</p>
+        <p className="fine">Runs privately on Apple Silicon with 16 GB memory, or a PC with a 6 GB graphics card. Smaller computers work with your own AI API key. Alfred checks yours on first launch.</p>
       </div>
       <div className="hero-butler" title="Click Alfred"><Butler state={hero} onClick={bow}/></div>
     </header>

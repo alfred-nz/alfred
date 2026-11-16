@@ -11,7 +11,7 @@ h3{font-size:18px;font-weight:650}
 .eyebrow{display:block;font-size:12px;font-weight:650;letter-spacing:2px;color:#7f8a78;margin-bottom:14px}
 .lede{font-size:clamp(17px,1.6vw,20px);line-height:1.6;color:var(--muted);margin-top:20px}
 .lede.narrow{max-width:620px;margin-left:auto;margin-right:auto}
-.fine{font-size:13px;color:#8a9085;margin-top:16px;line-height:1.6}.center{text-align:center}
+.fine{font-size:13px;color:#8a9085;margin-top:16px;line-height:1.6}.fine+.fine{margin-top:6px}.center{text-align:center}
 .site{max-width:1180px;margin:0 auto;padding:0 24px}
 section{padding:96px 0;border-top:1px solid var(--line)}
 

@@ -8,6 +8,6 @@ export function compileNative(destination){
   if(!fs.existsSync(compiler))throw new Error('.NET Framework 4.x compiler is missing.');
   const refs=['UIAutomationClient','UIAutomationTypes','WindowsBase','System.Speech'].map(n=>'/reference:'+path.join(framework,'WPF',n+'.dll'));
   fs.mkdirSync(path.dirname(destination),{recursive:true});
-  execFileSync(compiler,['/nologo','/target:exe','/platform:x64','/out:'+destination,'/reference:System.Web.Extensions.dll','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll',...refs,'scripts/windows/AlfredNative.cs'],{stdio:'inherit'});
+  execFileSync(compiler,['/nologo','/target:exe','/platform:x64','/out:'+destination,'/reference:System.Web.Extensions.dll','/reference:System.Windows.Forms.dll','/reference:System.Drawing.dll',...refs,path.resolve('scripts','windows','AlfredNative.cs')],{stdio:'inherit'});
   return destination;
 }

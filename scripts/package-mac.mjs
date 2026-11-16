@@ -1,0 +1,21 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+const root=process.cwd();const output=path.join(root,'release/Alfred.app');
+const electron=path.join(root,'node_modules/electron/dist/Electron.app');
+if(!fs.existsSync(electron))throw new Error('Install the Darwin Electron runtime first: node node_modules/electron/install.js');
+fs.mkdirSync(path.dirname(output),{recursive:true});
+fs.rmSync(output,{recursive:true,force:true});
+execFileSync('/usr/bin/ditto',[electron,output]);
+const contents=path.join(output,'Contents');const resources=path.join(contents,'Resources');
+const appdir=path.join(resources,'app');fs.mkdirSync(appdir,{recursive:true});
+for(const name of ['dist','dist-electron','package.json','node_modules'])fs.cpSync(path.join(root,name),path.join(appdir,name),{recursive:true,verbatimSymlinks:true,filter:p=>!p.includes('/node_modules/electron/')&&!p.includes('/node_modules/.cache/')});
+const plist=path.join(contents,'Info.plist');
+function set(file,key,value){try{execFileSync('/usr/libexec/PlistBuddy',['-c',`Set :${key} ${value}`,file],{stdio:'pipe'});}catch{execFileSync('/usr/libexec/PlistBuddy',['-c',`Add :${key} string ${value}`,file],{stdio:'pipe'});}}
+set(plist,'CFBundleIdentifier','io.openexec.alfred');set(plist,'CFBundleName','Alfred');set(plist,'CFBundleDisplayName','Alfred');
+set(plist,'NSMicrophoneUsageDescription','Alfred listens when you ask it to take a voice instruction.');set(plist,'NSSpeechRecognitionUsageDescription','Alfred transcribes your spoken instructions on this Mac.');
+const helper=path.join(resources,'Alfred Speech.app/Contents');fs.mkdirSync(path.join(helper,'MacOS'),{recursive:true});
+fs.writeFileSync(path.join(helper,'Info.plist'),`<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>CFBundleExecutable</key><string>AlfredSpeech</string><key>CFBundleIdentifier</key><string>io.openexec.alfred.speech</string><key>CFBundleName</key><string>Alfred Speech</string><key>CFBundlePackageType</key><string>APPL</string><key>LSUIElement</key><true/><key>NSMicrophoneUsageDescription</key><string>Alfred listens to your spoken instructions.</string><key>NSSpeechRecognitionUsageDescription</key><string>Alfred transcribes speech on your Mac.</string></dict></plist>`);
+execFileSync('/usr/bin/swiftc',['scripts/Speech.swift','-o',path.join(helper,'MacOS/AlfredSpeech'),'-framework','Speech','-framework','AVFoundation','-framework','Foundation'],{stdio:'inherit'});
+execFileSync('/usr/bin/codesign',['--force','--deep','--sign','-',output],{stdio:'inherit'});
+console.log(output);

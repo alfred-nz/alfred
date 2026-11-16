@@ -1,0 +1,14 @@
+name: Check Alfred
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    container: node:22-bookworm
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm ci --ignore-scripts
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

@@ -1,0 +1,47 @@
+export type ButlerState =
+  | 'idle'
+  | 'walking'
+  | 'listening'
+  | 'thinking'
+  | 'speaking'
+  | 'typing_post'
+  | 'presenting_mail'
+  | 'urgent_bill_alert'
+  | 'awaiting_approval'
+  | 'executing_payment'
+  | 'connecting_tool'
+  | 'celebrating'
+  | 'dance_moonwalk'
+  | 'dance_charleston'
+  | 'dance_spin'
+  | 'dance_disco'
+  | 'serving_tea'
+  | 'magic_trick'
+  | 'monocle_inspect'
+  | 'bowing';
+
+export type ButlerProp =
+  | 'none'
+  | 'silver_tray_mail'
+  | 'urgent_bill_bell'
+  | 'fountain_pen'
+  | 'magnifying_glass'
+  | 'spectacles'
+  | 'composio_orb'
+  | 'tea_service'
+  | 'twirling_cane'
+  | 'disco_ball'
+  | 'magic_dove'
+  | 'monocle_watch';
+
+export type ButlerPerformAction =
+  | 'dance_moonwalk'
+  | 'dance_charleston'
+  | 'dance_spin'
+  | 'dance_disco'
+  | 'serving_tea'
+  | 'magic_trick'
+  | 'monocle_inspect'
+  | 'bowing'
+  | 'random_dance'
+  | 'random_surprise';

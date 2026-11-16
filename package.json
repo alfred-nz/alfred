@@ -1,0 +1,39 @@
+{
+  "name": "openexec-alfred",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A voice-first Mac companion for OpenExec",
+  "main": "dist-electron/electron/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.electron.json && vite build",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "start": "electron .",
+    "package:mac": "node scripts/package-mac.mjs",
+    "test:desktop": "node scripts/desktop-smoke.mjs"
+  },
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@modelcontextprotocol/sdk": "^1.25.1",
+    "@playwright/mcp": "0.0.85",
+    "gsap": "^3.15.1",
+    "lucide-react": "^0.475.0",
+    "motion": "^14.14.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.9",
+    "@types/node": "^22.13.5",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@vitejs/plugin-react": "^4.3.4",
+    "electron": "^45.3.3",
+    "playwright": "^1.58.0",
+    "tailwindcss": "^4.0.9",
+    "tsx": "^4.19.3",
+    "typescript": "^5.7.3",
+    "vite": "^6.2.0"
+  }
+}
